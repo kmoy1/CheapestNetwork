@@ -4,7 +4,6 @@ from parse import read_input_file, write_output_file, read_output_file
 from utils import is_valid_network, average_pairwise_distance, average_pairwise_distance_fast
 import sys
 import os
-import time
 
 
 def solve(G):
@@ -49,6 +48,7 @@ def solve(G):
 
 
 def alg1(G):
+    """Apply alg 2: MST algorithm, and return a subgraph T"""
     MST1 = nx.minimum_spanning_tree(G) # Create MST from graph. 
     # prune MST's leaf nodes.
     finishedPruningAllTrees = False
@@ -57,7 +57,7 @@ def alg1(G):
     return MST1
 
 def alg2(G):
-    """Apply alg 2: MST algorithm. """
+    """Apply alg 2: MST algorithm, and return a subgraph T"""
     MST2 = nx.minimum_spanning_tree(G)
     # prune MST's leaf nodes 
     finishedPruningAllTrees = False
@@ -66,7 +66,7 @@ def alg2(G):
     return MST2
 
 def alg3(G):
-    """Apply alg 3: dominant set algorithm. """
+    """Apply alg 3: dominant set algorithm."""
     degreeWeightNodes(G)
     # calculate a dominating set of G.
     DSet = list(nx.algorithms.approximation.dominating_set.min_weighted_dominating_set(G, weight='wt'))
@@ -85,6 +85,7 @@ def foo():
 
 def dominatingMST(DSet, shortest_paths, G):
     """Return an MST based on dominating set DSET and a list of shortest paths. """
+    
     # build a new graph based on a dominating set DSET.
     DSetAsGraph = convertToGraph(DSet, shortest_paths)
     DMST = nx.minimum_spanning_tree(DSetAsGraph, 'weight')
