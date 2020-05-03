@@ -29,18 +29,19 @@ def solve(G):
 
     if DS_MST:
         dsMST = ["Dominating Set MST", average_pairwise_distance_fast(DS_MST), DS_MST]
-        # print("Dominating Set Cost: " + str(cost1))
     else:
         dsMST = ['none', float('inf'), None]
 
     mst1 = ["Pruned MST 1", average_pairwise_distance_fast(pruned_MST1), pruned_MST1]
     mst2 = ["Pruned MST 2", average_pairwise_distance_fast(pruned_MST2), pruned_MST2]
-    # print("Pruned MST 2 Cost: " + str(cost3))
  
     best_algorithm = min([dsMST, mst1, mst2], key=lambda x: x[1])
-    print(best_algorithm[0] + ' is optimal')
+    best_alg_name = best_algorithm[0]
+    best_alg_avg_dist = best_algorithm[1]
+    best_alg_avg_subgraph = best_algorithm[2]
+    #print(best_alg_name + 'optimal')
     #Return optimal subgraph + name of producing algorithm 
-    return best_algorithm[2], best_algorithm[0]
+    return best_alg_avg_subgraph, best_alg_name
 
 
 def alg1(G):
@@ -253,11 +254,11 @@ if __name__ == '__main__':
     total = 0
     input_graphs = os.listdir(arg_path)
     for graph_in in input_graphs:
-        print("---------------")
-        print("Calculating Minimal Tree for: " + graph_in)
+        #print("---------------")
+        #print("Calculating Minimal Tree for: " + graph_in)
         G = read_input_file(arg_path + '/' + graph_in)
         # foo()
-        T, alg = solve(G)
+        T, alg = solve(G) #solve will return both the graph T and the optimal algorithm name. 
         if (alg in alg_quality):
             alg_quality[alg] += 1 
         else:
