@@ -1,8 +1,6 @@
 import re
 import os
-
 import networkx as nx
-
 import utils
 
 
@@ -23,7 +21,7 @@ def read_input_file(path, max_size=None):
     Parses and validates an input file
 
     :param path: str, a path
-    :return: networkx Graph is the input is well formed, AssertionError thrown otherwise
+    :return: networkx Graph if the input is well formed, AssertionError thrown otherwise
     """
     with open(path, "r") as fo:
         n = fo.readline().strip()
@@ -90,7 +88,10 @@ def read_output_file(path, G):
             u = int(tokens[0])
             assert tokens[1].isdigit() and int(tokens[1]) in nodes
             v = int(tokens[1])
-            assert G.has_edge(u, v)
+            assert G.has_edge(u,v)
+            # if G.has_edge(u, v) == False:
+            #     print("Edge (" + str(u) + ", " + str(v) + ") not in graph G.")
+            #     assert False
 
         T = nx.parse_edgelist(lines, nodetype=int, data=(("weight", float),))
         for (u, v, w) in T.edges(data=True):
