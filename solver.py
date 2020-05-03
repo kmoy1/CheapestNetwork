@@ -53,8 +53,6 @@ def alg1(G):
     # prune MST's leaf nodes.
     finishedPruningAllTrees = False
     while not finishedPruningAllTrees:
-        # print("Iters Before remove_leaves called: " + str(iters))
-        # print("Calling remove_leaves. Iters: " + str(iters))
         MST1, finishedPruningAllTrees = pruneMST(MST1, G)
     return MST1
 
@@ -135,7 +133,6 @@ def pruneMST(MST, G):
     leaves.sort(reverse=True, key=sortByWeight)
 
     # PRUNE leaves from MST.
-    iters = -1
     num_times_pruned = 0 #
     removed = 1
     finishedPruningTree = False
@@ -148,12 +145,8 @@ def pruneMST(MST, G):
         MST, leaves, removed = removeLeaves1(leaves, MST, G)
         # print("Finished prune_leaves call.")
         num_times_pruned += 1
-        # print("Iters value after call: " + str(iters))
-        # print("Leaves removed: " + str(removed))
-        # num_times_looped += 1
     if num_times_pruned == 1:
         finishedPruningTree = True
-    # print("Num times looped: " + str(num_times_looped))
     return MST, finishedPruningTree
 
 def getLeaves(T):
@@ -194,13 +187,11 @@ def removeLeaves1(leaves, MST, G):
 def pruneMST2(MST, G):
     """Begin pruning leaf process considering decreasing of edge weights."""
     leaves = getLeaves(MST)
-    iters = -1
     finishedPruningTree = False
     num_times_pruned = 0
     removed = 1
     while removed > 0:
         min_tree, leaves, removed = removeLeaves2(leaves, MST, G)
-        iters += 1
         num_times_pruned += 1
     if num_times_pruned == 1:
         finishedPruningTree = True
