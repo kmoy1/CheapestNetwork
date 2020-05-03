@@ -16,7 +16,7 @@ def solve(G):
     """
     # Base Case: If no edges, we return the graph itself.
     if len(G.edges()) == 0:
-        return G, None
+        return G, None, 0
     #Algorithm Candidate 1: Cut ALL Leaf Nodes off MST. 
     pruned_MST1 = alg1(G)
     #Algorithm Candidate 2: Cut ALL Leaf Nodes off MST by edge weight consideration.
@@ -41,7 +41,7 @@ def solve(G):
     best_alg_avg_subgraph = best_algorithm[2]
     #print(best_alg_name + 'optimal')
     #Return optimal subgraph + name of producing algorithm 
-    return best_alg_avg_subgraph, best_alg_name
+    return best_alg_avg_subgraph, best_alg_name, best_alg_avg_dist
 
 
 def alg1(G):
@@ -64,7 +64,7 @@ def alg2(G):
 
 def alg3(G):
     """Apply alg 3: dominant set algorithm. Return a subgraph T."""
-    WeightNodes2(G)
+    WeightNodes3(G)
     # calculate a dominating set of G.
     DSet = list(nx.algorithms.approximation.dominating_set.min_weighted_dominating_set(G, weight='node_weight'))
 
@@ -74,7 +74,7 @@ def alg3(G):
     dom_MST = dominatingMST(DSet, shortest_paths, G)
     return dom_MST
 
-
+#ADD MORE ALGORITHMS HERE #
 
 def foo():
     print("Test Globality of G")
@@ -123,7 +123,6 @@ def pruneMST2(MST, G):
 
 def dominatingMST(DSet, shortest_paths, G):
     """Return an MST based on dominating set DSET and a list of shortest paths. """
-    
     # build a new graph based on a dominating set DSET.
     DSetAsGraph = convertToGraph(DSet, shortest_paths, G)
     DMST = nx.minimum_spanning_tree(DSetAsGraph, 'weight')
@@ -157,7 +156,7 @@ def convertToGraph(DSet, shortest_paths, G):
     return DSetGraph
 
 def WeightNodes1(G):
-    """Weight edges of vertices in G proportional to (-)degree.
+    """Weight vertices in G proportional to (-)degree.
     We do this because we want our dominating set to have vertices
     with as high degree as possible such that edges can
     be minimized in the MST."""
@@ -165,10 +164,18 @@ def WeightNodes1(G):
         G.nodes[v]['node_weight'] = -1 * G.degree[v]
 
 def WeightNodes2(G):
-    """Weight edges of vertices in G 
+    """Weight vertices in G 
     proportional to AVERAGE adjacent edge weight"""
     for v in G.nodes:
         G.nodes[v]['node_weight'] = AAEW(G, v)
+
+def WeightNodes3(G):
+    """Weight vertices in G 
+    proportional to distance to the "center" of the graph. """
+    # calculate distances of all vertices to center
+    distCenter, _ = nx.algorithms.shortest_paths.weighted.multi_source_dijkstra(G, nx.center(G), weight='weight')
+    for v in G.nodes:
+        G.nodes[v]['node_weight'] = distCenter[v]
 
 def AAEW(G, v):
     """REturn average adjacent edge weight for vertex v in graph G"""
@@ -194,7 +201,7 @@ def removeLeaves1(leaves, MST, G):
     longer a dominating set of G, and return MST."""
 
     num_removed_leaves = 0 #Number of removed leaves from MST.
-    kept_leaves = [] #Leaf edges we NEED to maintain dominating set.
+    impt_vertices = [] #Leaf edges we NEED to maintain dominating set.
 
     for leaf in leaves:
         if (leaf):
@@ -209,10 +216,10 @@ def removeLeaves1(leaves, MST, G):
             if (nx.is_dominating_set(G, MST.nodes) == False):
                 MST.add_node(leaf)
                 MST.add_edge(leaf_edge[0], leaf_edge[1], weight=leaf_edge[2])
-                kept_leaves.append(leaf)
+                impt_vertices.append(leaf)
             else:
                 num_removed_leaves += 1
-    return MST, kept_leaves, num_removed_leaves
+    return MST, impt_vertices, num_removed_leaves
 
 
 def removeLeaves2(leaves, MST, G):
@@ -220,7 +227,7 @@ def removeLeaves2(leaves, MST, G):
     longer a dominating set of G AND the average pairwise 
     distance is decreased."""
     num_removed_leaves = 0
-    kept_leaves = []
+    impt_vertices = []
     for leaf in leaves:
         if (leaf):
             e = list(MST.edges(leaf, data='weight'))[0]
@@ -233,11 +240,10 @@ def removeLeaves2(leaves, MST, G):
                 MST.add_node(leaf)
                 MST.add_edge(e[0], e[1], weight=e[2])
                 #print("Leaf kept")
-                kept_leaves.append(leaf)
+                impt_vertices.append(leaf)
             else:
                 num_removed_leaves += 1
-
-    return MST, kept_leaves, num_removed_leaves
+    return MST, impt_vertices, num_removed_leaves
 
 def print_best_algorithm(alg_quality, total):
     """Print best algorithm and score """
@@ -253,21 +259,24 @@ if __name__ == '__main__':
     alg_quality = {}
     total = 0
     input_graphs = os.listdir(arg_path)
+    total_dist = 0
     for graph_in in input_graphs:
         #print("---------------")
         #print("Calculating Minimal Tree for: " + graph_in)
         G = read_input_file(arg_path + '/' + graph_in)
         # foo()
-        T, alg = solve(G) #solve will return both the graph T and the optimal algorithm name. 
+        T, alg, avgdist = solve(G) #solve will return both the graph T and the optimal algorithm name. 
         if (alg in alg_quality):
             alg_quality[alg] += 1 
         else:
             alg_quality[alg] = 1
         assert is_valid_network(G, T)
-        print("Average pairwise distance: {}".format(average_pairwise_distance(T)))
-        out = 'outputs/' + graph_in[:len(graph_in) - 3] + '.out'
-        write_output_file(T, out)
-        read_output_file(out, G)
+        # print("Average pairwise distance: {}".format(average_pairwise_distance(T)))
+        graph_out = 'outputs/' + graph_in[:len(graph_in) - 3] + '.out'
+        write_output_file(T, graph_out)
+        read_output_file(graph_out, G)
         total += 1
-    #Best method to solve is the one that produced the 
+        total_dist += avgdist
+
     print_best_algorithm(alg_quality, total)
+    print("AVG OF AVGS (minimize this): " + str(total_dist / total))
