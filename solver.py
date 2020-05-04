@@ -21,21 +21,35 @@ def solve(G):
     pruned_MST1 = alg1(G)
     #Algorithm Candidate 2: Cut ALL Leaf Nodes off MST by edge weight consideration.
     pruned_MST2 = alg2(G)
-    # Algorithm Candidate 3: Dominating Set
-    DS_MST = alg3(G)
+    # Algorithm Candidate 3: Dominating Set Weight3
+    DS_MST3 = alg3(G, 3)
+    # Algorithm Candidate 4: Dominating Set Weight1
+    DS_MST1 = alg3(G, 1)
+    # Algorithm Candidate 5: Dominating Set Weight2
+    DS_MST2 = alg3(G, 2)
+    # # Algorithm Candidate 5: Dominating Set Weight0
+    # DS_MST0 = alg3(G, 0)
 
 
     # Print out results. 
 
-    if DS_MST:
-        dsMST = ["Dominating Set MST", average_pairwise_distance_fast(DS_MST), DS_MST]
+    if DS_MST1:
+        dsMST1 = ["Dominating Set MST", average_pairwise_distance_fast(DS_MST1), DS_MST1]
     else:
-        dsMST = ['none', float('inf'), None]
+        dsMST1 = ['none', float('inf'), None]
+    if DS_MST2:
+        dsMST2 = ["Dominating Set MST", average_pairwise_distance_fast(DS_MST2), DS_MST2]
+    else:
+        dsMST2 = ['none', float('inf'), None]
+    if DS_MST3:
+        dsMST3 = ["Dominating Set MST", average_pairwise_distance_fast(DS_MST3), DS_MST3]
+    else:
+        dsMST3 = ['none', float('inf'), None]
 
     mst1 = ["Pruned MST 1", average_pairwise_distance_fast(pruned_MST1), pruned_MST1]
     mst2 = ["Pruned MST 2", average_pairwise_distance_fast(pruned_MST2), pruned_MST2]
  
-    best_algorithm = min([dsMST, mst1, mst2], key=lambda x: x[1])
+    best_algorithm = min([dsMST1, dsMST2, dsMST3, mst1, mst2], key=lambda x: x[1])
     best_alg_name = best_algorithm[0]
     best_alg_avg_dist = best_algorithm[1]
     best_alg_avg_subgraph = best_algorithm[2]
@@ -62,9 +76,14 @@ def alg2(G):
         MST2, finishedPruningAllTrees = pruneMST2(MST2, G)
     return MST2
 
-def alg3(G):
+def alg3(G, num):
     """Apply alg 3: dominant set algorithm. Return a subgraph T."""
-    WeightNodes3(G)
+    if num == 1:
+        WeightNodes1(G)
+    elif num == 2:
+        WeightNodes2(G)
+    else:
+        WeightNodes3(G)
     # calculate a dominating set of G.
     DSet = list(nx.algorithms.approximation.dominating_set.min_weighted_dominating_set(G, weight='node_weight'))
 
