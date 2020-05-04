@@ -26,3 +26,6 @@ G such that:
 1. Every vertex v ∈ V is either in T or adjacent to a vertex in T.
 2. T is a tree.
 3. The average pairwise distance between all vertices in T is minimized.
+
+
+TO run our solver, simply run python solver.py inputs. Several lines in the code can be uncommented to display certain metadata such as best algorithm per graph, graph costs per algorithm run, etc. 
