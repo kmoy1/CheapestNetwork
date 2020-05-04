@@ -213,10 +213,9 @@ def convertToGraph2(DSet, shortest_paths, G):
         if v != centerVert:
             path = shortest_paths[v][centerVert]
             edges = []
-            for i in range(len(path) - 1):
-                u_path = path[i]
-                v_path = path[i + 1]
-                p = 0
+            for k in range(len(path) - 1):
+                u_path = path[k]
+                v_path = path[k+1]
                 if DSetGraph.has_edge(u_path, v_path): #BEAUTIFUL. DSetGraph.edges
                     continue
                 wt = G.edges[u_path, v_path]['weight']
