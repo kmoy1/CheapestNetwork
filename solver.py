@@ -29,27 +29,32 @@ def solve(G):
     DS_MST2 = alg3(G, 2)
     # # Algorithm Candidate 5: Dominating Set Weight0
     # DS_MST0 = alg3(G, 0)
+    DS_MST4 = alg4(G)
 
 
-    # Print out results. 
+    # Print out results: Attach name of algorithm with distance and the subgraph. 
 
     if DS_MST1:
-        dsMST1 = ["Dominating Set MST", average_pairwise_distance_fast(DS_MST1), DS_MST1]
+        dsMST1 = ["Dominating Set MST 1", average_pairwise_distance_fast(DS_MST1), DS_MST1]
     else:
         dsMST1 = ['none', float('inf'), None]
     if DS_MST2:
-        dsMST2 = ["Dominating Set MST", average_pairwise_distance_fast(DS_MST2), DS_MST2]
+        dsMST2 = ["Dominating Set MST 2", average_pairwise_distance_fast(DS_MST2), DS_MST2]
     else:
         dsMST2 = ['none', float('inf'), None]
     if DS_MST3:
-        dsMST3 = ["Dominating Set MST", average_pairwise_distance_fast(DS_MST3), DS_MST3]
+        dsMST3 = ["Dominating Set MST 3", average_pairwise_distance_fast(DS_MST3), DS_MST3]
     else:
         dsMST3 = ['none', float('inf'), None]
+    if DS_MST4:
+        dsMST4 = ["Dominating Set MST 4", average_pairwise_distance_fast(DS_MST4), DS_MST4]
+    else:
+        dsMST4 = ['none', float('inf'), None]
 
     mst1 = ["Pruned MST 1", average_pairwise_distance_fast(pruned_MST1), pruned_MST1]
     mst2 = ["Pruned MST 2", average_pairwise_distance_fast(pruned_MST2), pruned_MST2]
  
-    best_algorithm = min([dsMST1, dsMST2, dsMST3, mst1, mst2], key=lambda x: x[1])
+    best_algorithm = min([dsMST1, dsMST2, dsMST3, dsMST4, mst1, mst2], key=lambda x: x[1])#Find best algorithm by minkey on avg pairwise dist.
     best_alg_name = best_algorithm[0]
     best_alg_avg_dist = best_algorithm[1]
     best_alg_avg_subgraph = best_algorithm[2]
@@ -82,18 +87,31 @@ def alg3(G, num):
         WeightNodes1(G)
     elif num == 2:
         WeightNodes2(G)
-    else:
+    elif num == 3:
         WeightNodes3(G)
-    # calculate a dominating set of G.
+        # calculate a dominating set of G.
     DSet = list(nx.algorithms.approximation.dominating_set.min_weighted_dominating_set(G, weight='node_weight'))
 
     # Find shortest paths from G.
     shortest_paths = nx.algorithms.shortest_paths.generic.shortest_path(G)
     #Connect dominating set into tree with minimal total weight. 
     dom_MST = dominatingMST(DSet, shortest_paths, G)
+    finishedPruningAllTrees = False
+    while not finishedPruningAllTrees:
+        dom_MST, finishedPruningAllTrees = pruneMST2(dom_MST, G)
     return dom_MST
 
 #ADD MORE ALGORITHMS HERE #
+def alg4(G):
+    DSet = list(nx.algorithms.approximation.dominating_set.min_weighted_dominating_set(G, weight='node_weight'))
+    # Find shortest paths from G.
+    shortest_paths = nx.algorithms.shortest_paths.generic.shortest_path(G)
+    #Connect dominating set into tree with minimal total weight. 
+    dom_MST2 = dominatingMST2(DSet, shortest_paths, G)
+    finishedPruningAllTrees = False
+    while not finishedPruningAllTrees:
+        dom_MST2, finishedPruningAllTrees = pruneMST2(dom_MST2, G)
+    return dom_MST2
 
 def foo():
     print("Test Globality of G")
@@ -127,7 +145,7 @@ def pruneMST(MST, G):
 # Handles removing appropriate leaves from
 # the given minimum spanning tree.
 def pruneMST2(MST, G):
-    """Begin pruning leaf process considering decreasing of edge weights."""
+    """Begin pruning leaf process considering decreasing of avgpairwiseedgeweight."""
     leaves = getLeaves(MST)
     finishedPruningTree = False
     num_times_pruned = 0
@@ -144,6 +162,13 @@ def dominatingMST(DSet, shortest_paths, G):
     """Return an MST based on dominating set DSET and a list of shortest paths. """
     # build a new graph based on a dominating set DSET.
     DSetAsGraph = convertToGraph(DSet, shortest_paths, G)
+    DMST = nx.minimum_spanning_tree(DSetAsGraph, 'weight')
+    return DMST
+
+def dominatingMST2(DSet, shortest_paths, G):
+    """Return an MST based on dominating set DSET and a list of shortest paths. """
+    # build a new graph based on a dominating set DSET.
+    DSetAsGraph = convertToGraph2(DSet, shortest_paths, G)
     DMST = nx.minimum_spanning_tree(DSetAsGraph, 'weight')
     return DMST
 
@@ -166,12 +191,39 @@ def convertToGraph(DSet, shortest_paths, G):
                     v_path = path[k+1]
                     if DSetGraph.has_edge(u_path, v_path): #BEAUTIFUL. DSetGraph.edges
                         continue
-                    #Create edge in tuple format and add it to list. 
-                    w = G.edges[u_path, v_path]['weight']
+                    #Find edge weight between the nodes to finalize edge tuple. 
+                    wt = G.edges[u_path, v_path]['weight']
                     #Add edge to edges.
-                    edges.append((u_path, v_path, w))
+                    edges.append((u_path, v_path, wt))
                 if (edges):
                     DSetGraph.add_weighted_edges_from(edges)
+    return DSetGraph
+
+
+def convertToGraph2(DSet, shortest_paths, G):
+    """Convert DSet into a (minimal) subgraph 
+    with the shortest_paths as reference."""
+    centerVert = nx.algorithms.distance_measures.barycenter(G)[0]
+    DSetGraph = nx.Graph()
+    V = len(DSet)
+    #Go to the center of the graph, and build a subgraph out of the 
+    #Shortest path between the center vertex and each vertex in the 
+    #Dominating set. 
+    for v in DSet:
+        if v != centerVert:
+            path = shortest_paths[v][centerVert]
+            edges = []
+            for i in range(len(path) - 1):
+                u_path = path[i]
+                v_path = path[i + 1]
+                p = 0
+                if DSetGraph.has_edge(u_path, v_path): #BEAUTIFUL. DSetGraph.edges
+                    continue
+                wt = G.edges[u_path, v_path]['weight']
+                #Add edge to edges.
+                edges.append((u_path, v_path, wt))
+            if (edges):
+                DSetGraph.add_weighted_edges_from(edges)
     return DSetGraph
 
 def WeightNodes1(G):
@@ -192,7 +244,7 @@ def WeightNodes3(G):
     """Weight vertices in G 
     proportional to distance to the "center" of the graph. """
     # calculate distances of all vertices to center
-    distCenter, _ = nx.algorithms.shortest_paths.weighted.multi_source_dijkstra(G, nx.center(G), weight='weight')
+    distCenter, _ = nx.algorithms.shortest_paths.weighted.multi_source_dijkstra(G, nx.center(G))
     for v in G.nodes:
         G.nodes[v]['node_weight'] = distCenter[v]
 
@@ -248,7 +300,7 @@ def removeLeaves2(leaves, MST, G):
     num_removed_leaves = 0
     impt_vertices = []
     for leaf in leaves:
-        if (leaf):
+        if (leaf and list(MST.edges(leaf, data='weight'))):
             e = list(MST.edges(leaf, data='weight'))[0]
             cost = average_pairwise_distance_fast(MST)
             #Test removing an edge and finding new avg pairwise dist. 
