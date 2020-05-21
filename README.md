@@ -1,11 +1,5 @@
 # Cheapest Network Algorithm 
 
-Files:
-- `parse.py`: functions to read/write inputs and outputs
-- `solver.py`: where you should be writing your code to solve inputs
-- `utils.py`: contains functions to compute cost and validate NetworkX graphs
-- `phase1.py`: creates the 25, 50, 100 vertex inputs
-
 Algorithm finds the minimum dominating set of a graph G that minimizes average pairwise distance.
 
 Formally, let G = (V,E) be a positive weighted, connected, undirected graph. We would like to find a subgraph T of
@@ -16,3 +10,9 @@ G such that:
 
 
 TO run our solver, simply run python solver.py inputs. Several lines in the code can be uncommented to display certain metadata such as best algorithm per graph, graph costs per algorithm run, etc. 
+
+Files:
+- `parse.py`: functions to read/write inputs and outputs
+- `solver.py`: where you should be writing your code to solve inputs
+- `utils.py`: contains functions to compute cost and validate NetworkX graphs
+- `phase1.py`: creates the 25, 50, 100 vertex inputs
